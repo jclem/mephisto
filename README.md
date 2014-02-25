@@ -2,7 +2,7 @@
 
 Illusions of the v3 Heroku API
 
-## install
+## Install
 
 ```sh
 $ git clone https://github.com/jclem/mephisto
@@ -10,12 +10,14 @@ $ cd mephisto
 $ npm install
 ```
 
-## run
+## Run
 
 ```sh
 $ foreman start
 ```
 
-## use
+## Use
 
-To use Mephisto, simply make http GET requests to API endpoints. Mephisto will do its best to lie to you and create the illusion of the v3 Heroku API.
+To use Mephisto, simply make http GET requests to API endpoints on the Mephisto
+host. Mephisto will do its best to lie to you and create the illusion of the v3
+Heroku API.
