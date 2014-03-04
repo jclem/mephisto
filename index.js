@@ -1,39 +1,72 @@
-var handler = require('./lib/handler'),
-    http    = require('http'),
-    request = require('request');
+var _       = require('underscore'),
+    builder = require('./lib/builder'),
+    _url    = require('url');
 
-init();
+module.exports = function(schema) {
+  return function handle(req, res) {
+    var url  = _url.parse(req.url).pathname,
+        defn = getDefn(url),
+        link = getLink(req, url, defn);
 
-// boots the server
-function boot(schema) {
-  var server = http.createServer(handler(schema)),
-      port   = process.env.PORT;
-
-  server.listen(port, function() {
-    console.log('mephisto lurks on port ' + port);
-  });
-}
-
-// loads the schema and boots the server
-function init() {
-  loadSchema(function(err, res) {
-    if (err) {
-      throw err;
+    if (!link) {
+      end({ 'error': 'Not found' }, 404);
+    } else {
+      end(builder(url, schema, defn, link));
     }
 
-    if (res.statusCode != 200) {
-      throw 'mephisto did not receive 200 for schema request';
+    // writes the response body
+    function end(body, statusCode) {
+      statusCode || (statusCode = 200);
+      res.statusCode = statusCode;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify(body))
     }
+  }
 
-    var schema = JSON.parse(res.body);
-    boot(schema);
-  });
-}
+  // finds the resource definition for the given url
+  function getDefn(url) {
+    var defn, key, paths, path;
 
-// loads the schema
-function loadSchema(cb) {
-  var headers = { 'Accept': 'application/vnd.heroku+json; version=3' },
-      url     = 'http://api.heroku.com/schema';
+    for (key in schema.definitions) {
+      defn  = schema.definitions[key];
+      paths = getDefnLinkPaths(defn);
+      path  = _.find(paths, function(path) {
+        return matchPath(url, path);
+      });
 
-  request.get(url, { headers: headers }, cb);
-}
+      if (path) return defn;
+    }
+  }
+
+  // returns all link paths for the given resource definition
+  function getDefnLinkPaths(defn) {
+    return _.map(defn.links, function(link) {
+      return link.href;
+    });
+  }
+
+  // finds the link for the given url and resource definition
+  function getLink(req, url, defn) {
+    var i, link, matchesPath, matchesMethod;
+
+    if (!defn) return undefined;
+
+    for (i in defn.links) {
+      link          = defn.links[i];
+      matchesPath   = matchPath(url, link.href);
+      matchesMethod = req.method.toUpperCase() === link.method;
+      if (matchesPath && matchesMethod) return link;
+    }
+  }
+
+  // returns whether or not url matches given path
+  function matchPath(url, path) {
+    var rawRegex, regex;
+
+    rawRegex = path.replace(/{[^\/]+}/g, '[\\w-]+');
+    rawRegex = '^' + rawRegex + '$';
+    regex    = new RegExp(rawRegex);
+
+    return url.match(regex);
+  }
+};

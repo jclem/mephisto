@@ -1,7 +1,7 @@
 {
   "name": "mephisto",
-  "version": "0.0.0",
-  "description": "illusions of the v3 heroku api",
+  "version": "0.0.1",
+  "description": "return a request handler from an API schema",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,8 +11,8 @@
     "url": "https://github.com/jclem/mephisto"
   },
   "keywords": [
-    "heroku",
-    "api"
+    "api",
+    "json schema"
   ],
   "author": "Jonathan Clem",
   "license": "MIT",
@@ -21,7 +21,6 @@
   },
   "homepage": "https://github.com/jclem/mephisto",
   "dependencies": {
-    "request": "~2.34.0",
     "underscore": "~1.6.0",
     "steeltoe": "~1.0.0"
   }
